@@ -540,6 +540,13 @@ config MACH_MSM8X60_SURF
 	help
 	  Support for the Qualcomm MSM8x60 SURF eval board.
 
+config MACH_MSM8X60_PYRAMID
+	depends on ARCH_MSM8X60
+	default n
+	bool "MSM8x60 PYRAMID"
+	help
+	  Support for the Qualcomm MSM8x60 Pyramid device. (HTC Sensation)
+
 config MACH_MSM8X60_FFA
 	depends on ARCH_MSM8X60
 	default n
