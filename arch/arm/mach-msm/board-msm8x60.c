@@ -10372,7 +10372,7 @@ static void __init msm8x60_pyramid_init(void)
 
 	platform_add_devices(early_devices, ARRAY_SIZE(early_devices));
 	/* CPU frequency control is not supported on simulated targets. */
-	msm_acpu_clock_init(&msm8x60_acpu_clock_data);
+	acpuclk_init(&msm8x60_acpu_clock_data);
 
 	msm8x60_init_tlmm();
 	msm8x60_init_gpiomux(msm8x60_htc_gpiomux_cfgs);
