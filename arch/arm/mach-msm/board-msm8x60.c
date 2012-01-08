@@ -61,6 +61,10 @@
 #include <mach/msm_spi.h>
 #include <mach/msm_serial_hs.h>
 #include <mach/msm_serial_hs_lite.h>
+#ifdef CONFIG_BT
+#include <mach/htc_bdaddress.h>
+#include <mach/htc_sleep_clk.h>
+#endif
 #include <mach/msm_iomap.h>
 #include <mach/msm_memtypes.h>
 #include <asm/mach/mmc.h>
