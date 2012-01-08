@@ -896,3 +896,10 @@ int __init msm_rpm_init(struct msm_rpm_platform_data *data)
 
 	return platform_driver_register(&msm_rpm_platform_driver);
 }
+
+void __init msm_rpm_lpm_init(uint32_t *lpm_setting, uint32_t num)
+{
+	uint32_t i = 0;
+	for (i = 0; i < num; i++)
+		msm_rpm_write(MSM_RPM_PAGE_STAT, RPM_LPM_PM8058 + i, lpm_setting[i]);
+}

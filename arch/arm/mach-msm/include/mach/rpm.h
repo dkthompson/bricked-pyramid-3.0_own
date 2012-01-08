@@ -99,6 +99,7 @@ int msm_rpm_local_request_is_outstanding(void);
 int msm_rpm_get_status(struct msm_rpm_iv_pair *status, int count);
 int msm_rpm_set(int ctx, struct msm_rpm_iv_pair *req, int count);
 int msm_rpm_set_noirq(int ctx, struct msm_rpm_iv_pair *req, int count);
+void msm_rpm_lpm_init(uint32_t *lpm_setting, uint32_t num);
 
 static inline int msm_rpm_set_nosleep(
 	int ctx, struct msm_rpm_iv_pair *req, int count)
