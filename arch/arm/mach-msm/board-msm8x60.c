@@ -10310,7 +10310,7 @@ uint32_t __initdata regulator_lpm_set[] =
 	PM8901_LPM_SET(PM8901_L5) | PM8901_LPM_SET(PM8901_L6),
 };
 
-static void __init msm8x60_pyramid_init(void)
+static void __init msm8x60_pyramid_init(struct msm_board_data *board_data)
 {
 	int ret = 0;
 	struct kobject *properties_kobj;
@@ -10375,7 +10375,7 @@ static void __init msm8x60_pyramid_init(void)
 	acpuclk_init(&acpuclk_8x60_soc_data);
 
 	msm8x60_init_tlmm();
-	msm8x60_init_gpiomux(msm8x60_htc_gpiomux_cfgs);
+	msm8x60_init_gpiomux(board_data->gpiomux_cfgs);
 	msm8x60_init_mmc();
 
 #ifdef CONFIG_MSM_DSPS
