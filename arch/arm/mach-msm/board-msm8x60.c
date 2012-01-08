@@ -129,6 +129,9 @@
 #define DSPS_PIL_GENERIC_NAME		"dsps"
 #define DSPS_PIL_FLUID_NAME		"dsps_fluid"
 
+/* Speed bin register. */
+#define QFPROM_SPEED_BIN_ADDR		(MSM_QFPROM_BASE + 0x00C0)
+
 #ifdef CONFIG_ION_MSM
 static struct platform_device ion_dev;
 #endif
