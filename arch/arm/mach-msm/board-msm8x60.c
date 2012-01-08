@@ -10281,7 +10281,142 @@ static void __init msm8x60_dragon_init(void)
 
 static void __init msm8x60_pyramid_init(void)
 {
+	int ret = 0;
+	struct kobject *properties_kobj;
+	uint32_t raw_speed_bin, speed_bin;
+
+	raw_speed_bin = readl(QFPROM_SPEED_BIN_ADDR);
+	speed_bin = raw_speed_bin & 0xF;
+	/*
+	 * Initialize RPM first as other drivers and devices may need
+	 * it for their initialization.
+	 */
+#ifdef CONFIG_MSM_RPM
+	BUG_ON(msm_rpm_init(&msm_rpm_data));
+	msm_rpm_lpm_init(regulator_lpm_set, ARRAY_SIZE(regulator_lpm_set));
+#endif
+	if (msm_xo_init())
+		pr_err("Failed to initialize XO votes\n");
+
+
+
+	printk(KERN_INFO "pyramid_init() revision=%d engineerid=%d\n", system_rev, engineerid);
+
+
+	if (socinfo_init() < 0)
+		printk(KERN_ERR "%s: socinfo_init() failed!\n",
+		       __func__);
+	msm8x60_check_2d_hardware();
+
+	/*
+	 * Initialize SPM before acpuclock as the latter calls into SPM
+	 * driver to set ACPU voltages.
+	 */
+	if (SOCINFO_VERSION_MAJOR(socinfo_get_version()) != 1)
+		msm_spm_init(msm_spm_data, ARRAY_SIZE(msm_spm_data));
+	else
+		msm_spm_init(msm_spm_data_v1, ARRAY_SIZE(msm_spm_data_v1));
+
+	/*
+	 * Disable regulator info printing so that regulator registration
+	 * messages do not enter the kmsg log.
+	 */
+	regulator_suppress_info_printing();
+
+	/* Initialize regulators needed for clock_init. */
+	platform_add_devices(early_regulators, ARRAY_SIZE(early_regulators));
+
+	msm_clock_init(msm_clocks_8x60, msm_num_clocks_8x60);
+
+	/* Buses need to be initialized before early-device registration
+	 * to get the platform data for fabrics.
+	 */
+	msm8x60_init_buses();
+
 	msm8x60_init(&msm8x60_pyramid_board_data);
+
+#ifdef CONFIG_BT
+	bt_export_bd_address();
+#endif
+
+	platform_add_devices(early_devices, ARRAY_SIZE(early_devices));
+	/* CPU frequency control is not supported on simulated targets. */
+	msm_acpu_clock_init(&msm8x60_acpu_clock_data);
+
+	msm8x60_init_tlmm();
+	msm8x60_init_gpiomux(msm8x60_htc_gpiomux_cfgs);
+	msm8x60_init_mmc();
+
+#ifdef CONFIG_MSM_DSPS
+	msm8x60_init_dsps();
+#endif
+	platform_add_devices(msm_footswitch_devices,
+					     msm_num_footswitch_devices);
+
+	msm8x60_init_camera();
+
+	/* Accessory */
+	printk(KERN_INFO "[HS_BOARD] (%s) system_rev = %d, LE = %d\n", __func__,
+	       system_rev, (speed_bin == 0x1) ? 1 : 0);
+	if (system_rev > 2 || speed_bin == 0x1) {
+		htc_headset_pmic_data.key_gpio =
+			PM8058_GPIO_PM_TO_SYS(PYRAMID_AUD_REMO_PRES);
+		htc_headset_mgr_data.headset_config_num =
+			ARRAY_SIZE(htc_headset_mgr_config);
+		htc_headset_mgr_data.headset_config = htc_headset_mgr_config;
+		printk(KERN_INFO "[HS_BOARD] (%s) Set MEMS config\n", __func__);
+	}
+
+	if (speed_bin == 0x1) {
+		pm8058_leds_data.led_config = pm_led_config_LE;
+		pm8058_leds_data.num_leds = ARRAY_SIZE(pm_led_config_LE);
+	}
+
+	if (machine_is_pyramid()) {
+		platform_add_devices(surf_devices,
+				     ARRAY_SIZE(surf_devices));
+#ifdef CONFIG_USB_EHCI_MSM
+		msm_add_host(0, &msm_usb_host_pdata);
+#endif
+	}
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+	if (system_rev > 1)
+		platform_add_devices(hdmi_devices, 1);
+#endif
+	pyd_init_panel(msm_fb_resources, ARRAY_SIZE(msm_fb_resources));
+	register_i2c_devices();
+#ifdef CONFIG_USB_ANDROID
+	pyramid_add_usb_devices();
+#endif
+
+	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
+	msm_cpuidle_set_states(msm_cstates, ARRAY_SIZE(msm_cstates),
+				msm_pm_data);
+
+#ifdef CONFIG_MSM8X60_AUDIO
+	msm_auxpcm_init();
+	msm_snddev_init();
+
+	spi_register_board_info(msm_spi_board_info, ARRAY_SIZE(msm_spi_board_info));
+	gpio_tlmm_config(msm_spi_gpio[0], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(msm_spi_gpio[1], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(msm_spi_gpio[2], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(msm_spi_gpio[3], GPIO_CFG_ENABLE);
+
+	pyramid_audio_init();
+#endif
+
+	properties_kobj = kobject_create_and_add("board_properties", NULL);
+	if (properties_kobj)
+		ret = sysfs_create_group(properties_kobj,
+				&pyramid_properties_attr_group);
+	pyramid_init_keypad();
+	pyramid_wifi_init();
+
+	sysinfo_proc_init();
+
+	msm_mpm_set_irq_ignore_list(irq_ignore_tbl, irq_num_ignore_tbl);
+	msm_clk_soc_set_ignore_list(clk_ignore_tbl, clk_num_ignore_tbl);
 }
 
 MACHINE_START(MSM8X60_RUMI3, "QCT MSM8X60 RUMI3")
