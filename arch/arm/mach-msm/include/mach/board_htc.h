@@ -75,4 +75,6 @@ int parse_tag_engineerid(const struct tag * tags);
 
 char *board_serialno(void);
 
+extern unsigned engineer_id;
+
 #endif

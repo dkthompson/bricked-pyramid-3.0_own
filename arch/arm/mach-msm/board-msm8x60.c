@@ -132,6 +132,13 @@
 /* Speed bin register. */
 #define QFPROM_SPEED_BIN_ADDR		(MSM_QFPROM_BASE + 0x00C0)
 
+//Engineer ID
+static unsigned int engineerid;
+unsigned int pyramid_get_engineerid(void)
+{
+	return engineerid;
+}
+
 #ifdef CONFIG_ION_MSM
 static struct platform_device ion_dev;
 #endif

@@ -388,6 +388,8 @@ int __init parse_tag_skuid(const struct tag *tags)
 __tagtable(ATAG_SKUID, parse_tag_skuid);
 
 #define ATAG_ENGINEERID 0x4d534D75
+unsigned engineer_id;
+EXPORT_SYMBOL(engineer_id);
 int __init parse_tag_engineerid(const struct tag *tags)
 {
 	int engineerid = 0, find = 0;
@@ -401,8 +403,10 @@ int __init parse_tag_engineerid(const struct tag *tags)
 		}
 	}
 
-	if (find)
+	if (find) {
+		engineer_id = t->u.revision.rev;
 		engineerid = t->u.revision.rev;
+	}
 	printk(KERN_DEBUG "parse_tag_engineerid: hwid = 0x%x\n", engineerid);
 	return engineerid;
 }
