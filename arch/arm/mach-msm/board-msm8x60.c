@@ -6829,6 +6829,16 @@ static struct i2c_board_info wm8903_codec_i2c_info[] = {
 };
 #endif
 
+static struct spi_board_info msm_spi_board_info[] __initdata = {
+	{
+		.modalias	= "spi_aic3254",
+		.mode           = SPI_MODE_1,
+		.bus_num        = 0,
+		.chip_select    = 0,
+		.max_speed_hz   = 10800000,
+	}
+};
+
 #ifdef CONFIG_PMIC8901
 
 #define PM8901_GPIO_INT           91
