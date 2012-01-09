@@ -76,6 +76,10 @@
 #endif
 #include <mach/msm_xo.h>
 #include <mach/msm_bus_board.h>
+#include <mach/htc_headset_mgr.h>
+#include <mach/htc_headset_gpio.h>
+#include <mach/htc_headset_pmic.h>
+#include <mach/htc_headset_8x60.h>
 #include <mach/socinfo.h>
 #include <linux/i2c/isl9519.h>
 #ifdef CONFIG_USB_G_ANDROID
