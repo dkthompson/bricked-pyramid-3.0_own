@@ -3115,6 +3115,10 @@ static struct platform_device hdmi_msm_device = {
 	.resource = hdmi_msm_resources,
 	.dev.platform_data = &hdmi_msm_data,
 };
+
+static struct platform_device *hdmi_devices[] __initdata = {
+	&hdmi_msm_device,
+};
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 
 #ifdef CONFIG_FB_MSM_MIPI_DSI
@@ -4435,7 +4439,7 @@ static struct platform_device *rumi_sim_devices[] __initdata = {
 	&msm_kgsl_2d1,
 	&lcdc_samsung_panel_device,
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
-	&hdmi_msm_device,
+	//&hdmi_msm_device,
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 #ifdef CONFIG_MSM_CAMERA
 #ifdef CONFIG_MT9E013
@@ -5374,7 +5378,7 @@ static struct platform_device *surf_devices[] __initdata = {
 	&lcdc_auo_wvga_panel_device,
 #endif
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
-	&hdmi_msm_device,
+	//&hdmi_msm_device,
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 #ifdef CONFIG_FB_MSM_MIPI_DSI
 	&mipi_dsi_toshiba_panel_device,
