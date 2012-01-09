@@ -29,11 +29,11 @@
 #include <mach/msm_iomap.h>
 #include <mach/panel_id.h>
 #include <mach/msm_bus_board.h>
+#include <mach/board-msm8660.h>
 
 #include "../devices.h"
-#include "../board-pyramid.h"
 #include "../devices-msm8x60.h"
-#include "../../../../drivers/video/msm_8x60/mdp_hw.h"
+#include "../../../../drivers/video/msm/mdp_hw.h"
 
 extern int panel_type;
 

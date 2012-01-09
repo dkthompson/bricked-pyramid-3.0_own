@@ -69,6 +69,30 @@ struct msm_panel_data {
 	uint32_t caps;
 };
 
+enum {
+	MDP_DMA_P = 0,
+	MDP_DMA_S,
+};
+
+struct mdp_reg {
+    uint32_t reg;
+    uint32_t val;
+    uint32_t mask;
+};
+
+struct msm_mdp_platform_data {
+	/* from the enum above */
+	int dma_channel;
+	unsigned overrides;
+	unsigned color_format;
+	int tearing_check;
+	unsigned sync_config;
+	unsigned sync_thresh;
+	unsigned sync_start_pos;
+	struct mdp_device *mdp_dev;
+	struct gamma_curvy *abl_gamma_tbl;
+};
+
 struct msm_mddi_client_data {
 	void (*suspend)(struct msm_mddi_client_data *);
 	void (*resume)(struct msm_mddi_client_data *);
