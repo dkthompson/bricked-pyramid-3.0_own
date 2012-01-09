@@ -238,4 +238,5 @@ static inline int msm_gpio_install_direct_irq(unsigned gpio, unsigned irq,
 }
 #endif
 
+int msm_dump_gpios(struct seq_file *m, int curr_len, char *gpio_buffer);
 #endif /* __ASM_ARCH_MSM_GPIO_H */
