@@ -144,10 +144,14 @@
 
 //Engineer ID
 static unsigned int engineerid;
+
 unsigned int pyramid_get_engineerid(void)
 {
 	return engineerid;
 }
+
+//Pyramid init panel
+int __init pyd_init_panel(struct resource *res, size_t size);
 
 #ifdef CONFIG_ION_MSM
 static struct platform_device ion_dev;
