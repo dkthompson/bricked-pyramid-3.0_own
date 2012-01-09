@@ -5452,6 +5452,10 @@ static struct platform_device *surf_devices[] __initdata = {
 #endif /* CONFIG_MSM_USE_TSIF1 */
 #endif /* CONFIG_TSIF */
 
+	&htc_headset_mgr,
+	&pm8058_leds,
+	//TODO: rpm_vreg_device
+
 #ifdef CONFIG_HW_RANDOM_MSM
 	&msm_device_rng,
 #endif
@@ -10607,9 +10611,10 @@ uint32_t __initdata regulator_lpm_set[] =
 	PM8901_LPM_SET(PM8901_L5) | PM8901_LPM_SET(PM8901_L6),
 };
 
-static void __init msm8x60_pyramid_init(struct msm_board_data *board_data)
+static void __init msm8x60_pyramid_init(void)
 {
 	int ret = 0;
+	struct msm_board_data *board_data = &msm8x60_pyramid_board_data;
 	struct kobject *properties_kobj;
 	uint32_t raw_speed_bin, speed_bin;
 
@@ -10660,8 +10665,6 @@ static void __init msm8x60_pyramid_init(struct msm_board_data *board_data)
 	 * to get the platform data for fabrics.
 	 */
 	msm8x60_init_buses();
-
-	msm8x60_init(&msm8x60_pyramid_board_data);
 
 #ifdef CONFIG_BT
 	bt_export_bd_address();
