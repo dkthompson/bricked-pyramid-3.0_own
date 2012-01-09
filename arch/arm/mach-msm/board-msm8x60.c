@@ -105,6 +105,7 @@
 #include "rpm_log.h"
 #include "timer.h"
 #include "gpiomux-8x60.h"
+#include "sysinfo-8x60.h"
 #include "rpm_stats.h"
 #include "peripheral-loader.h"
 #include <linux/platform_data/qcom_crypto_device.h>
