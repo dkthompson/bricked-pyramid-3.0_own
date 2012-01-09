@@ -130,4 +130,6 @@ struct pm8058_platform_data {
 	struct pmic8058_charger_data		*charger_pdata;
 };
 
+int pmic8058_dump_gpios(struct seq_file *m, int curr_len, char *gpio_buffer);
+
 #endif  /* __MFD_PMIC8058_H__ */

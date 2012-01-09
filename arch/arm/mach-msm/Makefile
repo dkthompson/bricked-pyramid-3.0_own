@@ -284,6 +284,9 @@ obj-$(CONFIG_HTC_HEADSET_PMIC) += htc_headset_pmic.o
 obj-$(CONFIG_HTC_HEADSET_MISC) += htc_headset_misc.o
 obj-$(CONFIG_HTC_HEADSET_8X60) += htc_headset_8x60.o
 
+ifeq ($(CONFIG_ARCH_MSM8X60),y)
+obj-$(CONFIG_PMIC8058) += pmic8058-gpio-8x60.o pmic8058-mpp-8x60.o
+endif
 obj-$(CONFIG_MSM_RMT_STORAGE_CLIENT) += rmt_storage_client.o
 obj-$(CONFIG_MSM_SDIO_SMEM) += sdio_smem.o
 obj-$(CONFIG_MSM_RPM) += rpm.o rpm_resources.o
