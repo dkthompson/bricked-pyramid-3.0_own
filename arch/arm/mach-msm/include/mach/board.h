@@ -382,6 +382,9 @@ struct msm_fb_platform_data {
 	int (*detect_client)(const char *name);
 	int mddi_prescan;
 	int (*allow_set_offset)(void);
+	int blt_mode;
+	uint32_t width;
+	uint32_t height;
 };
 
 struct msm_hdmi_platform_data {
