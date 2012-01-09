@@ -4196,6 +4196,110 @@ static struct platform_device msm_bt_power_device = {
 };
 #endif
 
+/* HTC_HEADSET_GPIO Driver */
+static struct htc_headset_gpio_platform_data htc_headset_gpio_data = {
+	.hpin_gpio		= PYRAMID_GPIO_AUD_HP_DET,
+	.key_enable_gpio	= 0,
+	.mic_select_gpio	= 0,
+};
+
+static struct platform_device htc_headset_gpio = {
+	.name	= "HTC_HEADSET_GPIO",
+	.id	= -1,
+	.dev	= {
+		.platform_data	= &htc_headset_gpio_data,
+	},
+};
+
+/* HTC_HEADSET_PMIC Driver */
+static struct htc_headset_pmic_platform_data htc_headset_pmic_data = {
+	.driver_flag		= 0,
+	.hpin_gpio		= 0,
+	.hpin_irq		= 0,
+	.key_gpio		= 0,
+	.key_irq		= 0,
+	.key_enable_gpio	= 0,
+	.adc_mic_bias		= {0, 0},
+	.adc_remote		= {0, 0, 0, 0, 0, 0},
+};
+
+static struct platform_device htc_headset_pmic = {
+	.name	= "HTC_HEADSET_PMIC",
+	.id	= -1,
+	.dev	= {
+		.platform_data	= &htc_headset_pmic_data,
+	},
+};
+
+/* HTC_HEADSET_8X60 Driver */
+static struct htc_headset_8x60_platform_data htc_headset_8x60_data = {
+	.adc_mpp	= XOADC_MPP_10,
+	.adc_amux	= PM_MPP_AIN_AMUX_CH5,
+	.adc_mic_bias	= {HS_DEF_MIC_ADC_15_BIT_MIN,
+			   HS_DEF_MIC_ADC_15_BIT_MAX},
+	.adc_remote	= {0, 722, 723, 2746, 2747, 6603},
+};
+
+static struct platform_device htc_headset_8x60 = {
+	.name	= "HTC_HEADSET_8X60",
+	.id	= -1,
+	.dev	= {
+		.platform_data	= &htc_headset_8x60_data,
+	},
+};
+
+/* HTC_HEADSET_MGR Driver */
+static struct platform_device *headset_devices[] = {
+	&htc_headset_pmic,
+	&htc_headset_8x60,
+	&htc_headset_gpio,
+	/* Please put the headset detection driver on the last */
+};
+
+static struct headset_adc_config htc_headset_mgr_config[] = {
+	{
+		.type = HEADSET_MIC,
+		.adc_max = 28920,
+		.adc_min = 21705,
+	},
+	{
+		.type = HEADSET_BEATS,
+		.adc_max = 21704,
+		.adc_min = 14605,
+	},
+	{
+		.type = HEADSET_BEATS_SOLO,
+		.adc_max = 14604,
+		.adc_min = 8676,
+	},
+	{
+		.type = HEADSET_NO_MIC, /* HEADSET_INDICATOR */
+		.adc_max = 8675,
+		.adc_min = 5784,
+	},
+	{
+		.type = HEADSET_NO_MIC,
+		.adc_max = 5783,
+		.adc_min = 0,
+	},
+};
+
+static struct htc_headset_mgr_platform_data htc_headset_mgr_data = {
+	.driver_flag		= 0,
+	.headset_devices_num	= ARRAY_SIZE(headset_devices),
+	.headset_devices	= headset_devices,
+	.headset_config_num	= 0,
+	.headset_config		= 0,
+};
+
+static struct platform_device htc_headset_mgr = {
+	.name	= "HTC_HEADSET_MGR",
+	.id	= -1,
+	.dev	= {
+		.platform_data	= &htc_headset_mgr_data,
+	},
+};
+
 static struct platform_device msm_tsens_device = {
 	.name   = "tsens-tm",
 	.id = -1,
