@@ -610,6 +610,114 @@ fail:
 }
 EXPORT_SYMBOL(pm8058_xoadc_calib_device);
 
+static int32_t pm8058_htc_read_adc(uint32_t adc_instance, int32_t *result,
+				int32_t size, int32_t channels)
+{
+	struct pmic8058_adc *adc_pmic = pmic_adc[adc_instance];
+	bool negative_rawfromoffset = 0;
+	int32_t rawfromoffset = 0;
+	int32_t i, adc_code, ret = 0;
+	int64_t measurement;
+
+	for (i = 0; i < size; i++) {
+		ret = pm8058_configure_and_read(0, channels,
+						&adc_code);
+		if (ret < 0) {
+			pr_err("%s:Read ADC failed.\n", __func__);
+			return ret;
+		}
+
+		rawfromoffset = adc_code - adc_pmic->adc_graph[0].offset;
+		if (rawfromoffset < 0) {
+			if (adc_pmic->adc_prop->bipolar) {
+				rawfromoffset = (rawfromoffset ^ -1) +  1;
+				negative_rawfromoffset = 1;
+			} else
+				rawfromoffset = 0;
+		}
+
+		if (rawfromoffset >= 1 << adc_pmic->adc_prop->bitresolution)
+			rawfromoffset = (1 << adc_pmic->adc_prop->bitresolution)
+					- 1;
+
+		measurement = (int64_t)rawfromoffset *
+					adc_pmic->adc_graph[0].dx *
+					gain_denominator;
+
+		do_div(measurement, adc_pmic->adc_graph[0].dy *
+					gain_numerator);
+
+		if (negative_rawfromoffset)
+			measurement = (measurement ^ -1) + 1;
+
+		result[i] = (int32_t)measurement *
+				(adc_pmic->adc_graph[1].dy * gain_numerator) /
+				(adc_pmic->adc_graph[1].dx * gain_denominator);
+	}
+
+	return ret;
+}
+
+int32_t pm8058_htc_config_mpp_and_adc_read(int32_t *result,
+				int32_t size, int32_t channels,
+				uint32_t mpp, uint32_t amux)
+{
+	int32_t ret = 0;
+
+	if (!xoadc_calib_adc) {
+		ret = pm8058_xoadc_calib_device(0);
+		if (ret)
+			pr_err("pm8058 xoadc calibration failed.\n");
+		else
+			xoadc_calib_adc = true;
+	}
+
+	mutex_lock(&list_mutex);
+	queue_count++;
+	mutex_unlock(&list_mutex);
+
+	switch (channels) {
+	case CHANNEL_ADC_VCHG:
+		ret = pm8058_htc_read_adc(0, result, size,
+					channels);
+		break;
+	case CHANNEL_ADC_BATT_AMON:
+	case CHANNEL_ADC_HDSET:
+	case CHANNEL_ADC_BATT_THERM:
+	default:
+		mutex_lock(&mpp_mutex);
+		ret = pm8058_mpp_config_analog_input(mpp, amux,
+					PM_MPP_AOUT_CTL_ENABLE);
+		if (ret) {
+			pr_err("%s:Config MPP failed!\n", __func__);
+			mutex_unlock(&mpp_mutex);
+			goto config_and_read_failed;
+		}
+		mdelay(1);
+
+		ret = pm8058_htc_read_adc(0, result, size, channels);
+
+		pm8058_mpp_config_current_sink(mpp, PM_MPP_CS_OUT_5MA,
+					PM_MPP_CS_CTL_DISABLE);
+
+		mutex_unlock(&mpp_mutex);
+
+		if (ret)
+			goto config_and_read_failed;
+
+		break;
+	}
+
+config_and_read_failed:
+	mutex_lock(&list_mutex);
+	queue_count--;
+	if (queue_count == 0)
+		pm8058_xoadc_arb_cntrl(0, 0);
+	mutex_unlock(&list_mutex);
+	return ret;
+}
+EXPORT_SYMBOL(pm8058_htc_config_mpp_and_adc_read);
+
 int32_t pm8058_xoadc_calibrate(uint32_t dev_instance,
 				struct adc_conv_slot *slot, int *calib_status)
 {
