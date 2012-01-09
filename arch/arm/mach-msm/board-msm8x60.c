@@ -10384,7 +10384,7 @@ static void __init msm8x60_pyramid_init(struct msm_board_data *board_data)
 	platform_add_devices(msm_footswitch_devices,
 					     msm_num_footswitch_devices);
 
-	msm8x60_init_camera();
+	//msm8x60_init_camera();
 
 	/* Accessory */
 	printk(KERN_INFO "[HS_BOARD] (%s) system_rev = %d, LE = %d\n", __func__,
