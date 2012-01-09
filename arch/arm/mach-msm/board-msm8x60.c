@@ -10548,6 +10548,34 @@ static void __init msm8x60_dragon_init(void)
 	msm8x60_init(&msm8x60_dragon_board_data);
 }
 
+static ssize_t pyramid_virtual_keys_show(struct kobject *kobj,
+			struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf,
+		__stringify(EV_KEY) ":" __stringify(KEY_HOME)	":62:1015:110:100"
+		":" __stringify(EV_KEY) ":" __stringify(KEY_MENU)   ":200:1015:106:100"
+		":" __stringify(EV_KEY) ":" __stringify(KEY_BACK)   ":340:1015:120:100"
+		":" __stringify(EV_KEY) ":" __stringify(KEY_SEARCH) ":482:1015:110:100"
+		"\n");
+}
+
+static struct kobj_attribute pyramid_virtual_keys_attr = {
+	.attr = {
+		.name = "virtualkeys.cy8c-touchscreen",
+		.mode = S_IRUGO,
+	},
+	.show = &pyramid_virtual_keys_show,
+};
+
+static struct attribute *pyramid_properties_attrs[] = {
+	&pyramid_virtual_keys_attr.attr,
+	NULL
+};
+
+static struct attribute_group pyramid_properties_attr_group = {
+	.attrs = pyramid_properties_attrs,
+};
+
 #define PM8058_LPM_SET(id)	(1 << RPM_VREG_ID_##id)
 #define PM8901_LPM_SET(id)	(1 << (RPM_VREG_ID_##id - RPM_VREG_ID_PM8901_L0))
 
