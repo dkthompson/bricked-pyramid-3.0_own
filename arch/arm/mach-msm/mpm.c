@@ -457,6 +457,27 @@ void msm_mpm_exit_sleep(bool from_idle)
 	msm_mpm_clear();
 }
 
+bool msm_mpm_defer_ignore_list;
+
+void msm_mpm_set_irq_ignore_list(int *ignore_irq, unsigned num_ignore_irq)
+{
+	int index;
+
+	bitmap_fill(msm_mpm_idle_apps_irqs, MSM_MPM_NR_APPS_IRQS);
+
+	if (msm_mpm_defer_ignore_list) {
+		bitmap_set(msm_mpm_gic_irqs_mask, 0, NR_MSM_IRQS - 1);
+		bitmap_set(msm_mpm_gpio_irqs_mask, NR_MSM_IRQS,
+			MSM_MPM_NR_APPS_IRQS - 1);
+	}
+	for (index =0; index < num_ignore_irq; index++)
+	{
+		__clear_bit(ignore_irq[index], msm_mpm_idle_apps_irqs);
+		__clear_bit(ignore_irq[index], msm_mpm_gic_irqs_mask);
+		__clear_bit(ignore_irq[index], msm_mpm_gpio_irqs_mask);
+	}
+}
+
 static int __init msm_mpm_early_init(void)
 {
 	uint8_t mpm_irq;
@@ -493,6 +514,12 @@ static int __init msm_mpm_init(void)
 {
 	unsigned int irq = msm_mpm_dev_data.mpm_ipc_irq;
 	int rc;
+
+	if (!msm_mpm_defer_ignore_list) {
+		bitmap_set(msm_mpm_gic_irqs_mask, 0, NR_MSM_IRQS - 1);
+		bitmap_set(msm_mpm_gpio_irqs_mask, NR_MSM_IRQS,
+				MSM_MPM_NR_APPS_IRQS - 1);
+	}
 
 	rc = request_irq(irq, msm_mpm_irq,
 			IRQF_TRIGGER_RISING, "mpm_drv", msm_mpm_irq);

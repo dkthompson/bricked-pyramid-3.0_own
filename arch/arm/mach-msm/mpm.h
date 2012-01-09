@@ -49,6 +49,9 @@ bool msm_mpm_gpio_irqs_detectable(bool from_idle);
 void msm_mpm_enter_sleep(bool from_idle);
 void msm_mpm_exit_sleep(bool from_idle);
 void msm_mpm_irq_extn_init(void);
+
+void msm_mpm_set_irq_ignore_list(int *ignore_irq, unsigned num_ignore_irq);
+extern bool msm_mpm_defer_ignore_list ;
 #else
 
 int msm_mpm_enable_irq(unsigned int irq, unsigned int enable)
