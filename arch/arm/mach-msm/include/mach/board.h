@@ -357,6 +357,7 @@ struct mipi_dsi_platform_data {
 	int (*dsi_client_reset)(void);
 	int (*get_lane_config)(void);
 	int target_type;
+	int (*esd_fixup)(uint32_t mfd_data);
 };
 
 enum mipi_dsi_3d_ctrl {
