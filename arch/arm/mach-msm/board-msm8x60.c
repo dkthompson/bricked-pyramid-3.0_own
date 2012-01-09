@@ -6828,6 +6828,7 @@ static struct i2c_board_info wm8903_codec_i2c_info[] = {
 	},
 };
 #endif
+
 #ifdef CONFIG_PMIC8901
 
 #define PM8901_GPIO_INT           91
@@ -9144,6 +9145,39 @@ error:
 #undef _GET_REGULATOR
 
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
+
+#ifdef CONFIG_MSM8X60_AUDIO
+static uint32_t msm_spi_gpio[] = {
+	GPIO_CFG(PYRAMID_SPI_DO,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+	GPIO_CFG(PYRAMID_SPI_DI,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+	GPIO_CFG(PYRAMID_SPI_CS,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+	GPIO_CFG(PYRAMID_SPI_CLK, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
+};
+
+static uint32_t auxpcm_gpio_table[] = {
+	GPIO_CFG(111, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(112, 1, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(113, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(114, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+
+static void msm_auxpcm_init(void)
+{
+	gpio_tlmm_config(auxpcm_gpio_table[0], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(auxpcm_gpio_table[1], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(auxpcm_gpio_table[2], GPIO_CFG_ENABLE);
+	gpio_tlmm_config(auxpcm_gpio_table[3], GPIO_CFG_ENABLE);
+}
+
+void msm_snddev_voltage_on(void)
+{
+}
+
+void msm_snddev_voltage_off(void)
+{
+}
+
+#endif /* CONFIG_MSM8X60_AUDIO */
 
 static int lcdc_panel_power(int on)
 {
