@@ -472,5 +472,7 @@ void msm_snddev_tx_route_deconfig(void);
 
 extern unsigned int msm_shared_ram_phys; /* defined in arch/arm/mach-msm/io.c */
 
+extern int emmc_partition_read_proc(char *page, char **start, off_t off,
+			   int count, int *eof, void *data);
 
 #endif
