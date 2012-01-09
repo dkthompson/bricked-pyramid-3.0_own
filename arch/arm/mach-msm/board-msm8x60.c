@@ -10606,7 +10606,7 @@ static void __init msm8x60_pyramid_init(struct msm_board_data *board_data)
 		pm8058_leds_data.num_leds = ARRAY_SIZE(pm_led_config_LE);
 	}
 
-	if (machine_is_pyramid()) {
+	if (machine_is_msm8x60_pyramid()) {
 		platform_add_devices(surf_devices,
 				     ARRAY_SIZE(surf_devices));
 #ifdef CONFIG_USB_EHCI_MSM
