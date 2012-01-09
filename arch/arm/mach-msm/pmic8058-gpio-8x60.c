@@ -76,7 +76,7 @@
 struct pm8058_gpio_chip {
 	struct gpio_chip	gpio_chip;
 	struct pm8058_chip	*pm_chip;
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	struct mutex		pm_lock;
 #endif
 	u8			bank1[PM8058_GPIOS];
@@ -113,7 +113,7 @@ static int pm8058_gpio_set(struct pm8058_gpio_chip *chip,
 	if (gpio >= PM8058_GPIOS || chip == NULL)
 		return -EINVAL;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_lock(&chip->pm_lock);
 #endif
 	bank1 = chip->bank1[gpio] & ~PM8058_GPIO_OUT_INVERT;
@@ -123,7 +123,7 @@ static int pm8058_gpio_set(struct pm8058_gpio_chip *chip,
 
 	chip->bank1[gpio] = bank1;
 	rc = pm8058_write(chip->pm_chip, SSBI_REG_ADDR_GPIO(gpio), &bank1, 1);
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_unlock(&chip->pm_lock);
 #endif
 
@@ -150,7 +150,7 @@ static int pm8058_gpio_set_direction(struct pm8058_gpio_chip *chip,
 	if (!direction || chip == NULL)
 		return -EINVAL;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_lock(&chip->pm_lock);
 #endif
 	bank1 = chip->bank1[gpio] & ~PM8058_GPIO_MODE_MASK;
@@ -160,7 +160,7 @@ static int pm8058_gpio_set_direction(struct pm8058_gpio_chip *chip,
 
 	chip->bank1[gpio] = bank1;
 	rc = pm8058_write(chip->pm_chip, SSBI_REG_ADDR_GPIO(gpio), &bank1, 1);
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_unlock(&chip->pm_lock);
 #endif
 
@@ -289,7 +289,7 @@ static int __devinit pm8058_gpio_probe(struct platform_device *pdev)
 	int	rc = 0;
 	struct pm8058_gpio_platform_data *pdata = pdev->dev.platform_data;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_init(&pm8058_gpio_chip.pm_lock);
 #endif
 	pm8058_gpio_chip.gpio_chip.dev = &pdev->dev;
@@ -422,7 +422,7 @@ static int __devinit pm8058_gpio_probe(struct platform_device *pdev)
 	int ret;
 	struct pm8058_gpio_platform_data *pdata = pdev->dev.platform_data;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_init(&pm8058_gpio_chip.pm_lock);
 #endif
 	pm8058_gpio_chip.gpio_chip.dev = &pdev->dev;
@@ -511,14 +511,14 @@ int pm8058_gpio_config(int gpio, struct pm_gpio *param)
 		((5 << PM8058_GPIO_BANK_SHIFT) & PM8058_GPIO_BANK_MASK) |
 		(param->inv_int_pol ? 0 : PM8058_GPIO_NON_INT_POL_INV);
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_lock(&pm8058_gpio_chip.pm_lock);
 #endif
 	/* Remember bank1 for later use */
 	pm8058_gpio_chip.bank1[gpio] = bank[1];
 	rc = pm8058_write(pm8058_gpio_chip.pm_chip,
 			SSBI_REG_ADDR_GPIO(gpio), bank, 6);
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_unlock(&pm8058_gpio_chip.pm_lock);
 #endif
 
@@ -534,7 +534,7 @@ static int sleep_read_gpio_bank(int gpio, int bank, u8 *data)
 {
 	int rc;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_lock(&pm8058_gpio_chip.pm_lock);
 #endif
 
@@ -549,7 +549,7 @@ static int sleep_read_gpio_bank(int gpio, int bank, u8 *data)
 		SSBI_REG_ADDR_GPIO(gpio), data, 1);
 
 bail_out:
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 		mutex_unlock(&pm8058_gpio_chip.pm_lock);
 #endif
 
@@ -656,7 +656,7 @@ static int debug_read_gpio_bank(int gpio, int bank, u8 *data)
 {
 	int rc;
 
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_lock(&pm8058_gpio_chip.pm_lock);
 #endif
 
@@ -671,7 +671,7 @@ static int debug_read_gpio_bank(int gpio, int bank, u8 *data)
 			SSBI_REG_ADDR_GPIO(gpio), data, 1);
 
 bail_out:
-#ifndef CONFIG_MSM8X60_SSBI
+#ifndef CONFIG_MSM_SSBI
 	mutex_unlock(&pm8058_gpio_chip.pm_lock);
 #endif
 

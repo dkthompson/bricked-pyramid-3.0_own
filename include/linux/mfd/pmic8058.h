@@ -132,6 +132,12 @@ struct pm8058_platform_data {
 	struct pmic8058_charger_data		*charger_pdata;
 };
 
+struct pm8058_gpio_platform_data {
+	int	gpio_base;
+	int	irq_base;
+	int	(*init)(void);
+};
+
 int pm8058_read(struct pm8058_chip *pm_chip, u16 addr, u8 *values,
 		unsigned int len);
 int pm8058_write(struct pm8058_chip *pm_chip, u16 addr, u8 *values,
