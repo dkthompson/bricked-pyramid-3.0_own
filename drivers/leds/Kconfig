@@ -298,6 +298,16 @@ config LEDS_PM8XXX
 	  To compile this driver as a module, choose M here: the module will
 	  be called leds-pmic8xxx.
 
+config LEDS_PM8058
+	tristate "LED Support for Qualcomm PMIC8058 - HTC"
+	depends on MFD_PM8XXX
+	help
+	  This option enables support for LEDs connected over PMIC8058
+	  (Power Management IC) chip on pyramid boards.
+
+	  To compile this driver as a module, choose M here: the module will
+	  be called leds-pmic8058.
+
 config LEDS_WM831X_STATUS
 	tristate "LED support for status LEDs on WM831x PMICs"
 	depends on LEDS_CLASS

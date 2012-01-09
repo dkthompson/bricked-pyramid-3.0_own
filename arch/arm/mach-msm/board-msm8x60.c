@@ -25,6 +25,7 @@
 #include <linux/regulator/gpio-regulator.h>
 #include <linux/regulator/pmic8901-regulator.h>
 #include <linux/bootmem.h>
+#include <linux/leds-pm8058.h>
 #include <linux/msm_adc.h>
 #include <linux/m_adcproc.h>
 #include <linux/mfd/marimba.h>
