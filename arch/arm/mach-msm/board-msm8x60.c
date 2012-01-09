@@ -57,6 +57,7 @@
 
 #include <mach/dma.h>
 #include <mach/board.h>
+#include <mach/mpp.h>
 #include <mach/irqs.h>
 #include <mach/msm_spi.h>
 #include <mach/msm_serial_hs.h>
