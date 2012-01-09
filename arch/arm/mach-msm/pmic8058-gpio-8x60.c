@@ -461,7 +461,7 @@ static int __devexit pm8058_gpio_remove(struct platform_device *pdev)
 
 #endif
 
-int pm8058_gpio_config(int gpio, struct pm8058_gpio *param)
+int pm8058_gpio_config(int gpio, struct pm_gpio *param)
 {
 	int	rc;
 	u8	bank[8];
