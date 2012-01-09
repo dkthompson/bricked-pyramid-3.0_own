@@ -10747,7 +10747,7 @@ static void __init msm8x60_pyramid_init(void)
 	sysinfo_proc_init();
 
 	msm_mpm_set_irq_ignore_list(irq_ignore_tbl, irq_num_ignore_tbl);
-	msm_clk_soc_set_ignore_list(clk_ignore_tbl, clk_num_ignore_tbl);
+	//msm_clk_soc_set_ignore_list(clk_ignore_tbl, clk_num_ignore_tbl);
 }
 
 MACHINE_START(MSM8X60_RUMI3, "QCT MSM8X60 RUMI3")
