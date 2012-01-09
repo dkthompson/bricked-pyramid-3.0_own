@@ -31,7 +31,7 @@ static int htc_sleep_clk_state_bt;
 static DEFINE_MUTEX(htc_w_b_mutex);
 
 /* pm8058 config */
-static struct pm8058_gpio pmic_gpio_sleep_clk_output = {
+static struct pm_gpio pmic_gpio_sleep_clk_output = {
 	.direction      = PM_GPIO_DIR_OUT,
 	.output_buffer  = PM_GPIO_OUT_BUF_CMOS,
 	.output_value   = 0,
