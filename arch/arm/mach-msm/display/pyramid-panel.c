@@ -125,7 +125,7 @@ static void pyramid_panel_power(int on)
 					" l1_3v\n", __func__);
 			return;
 		}
-		hr_msleep(5);
+		msleep(5);
 
 		if (system_rev >= 1) {
 			if (regulator_enable(l4_1v8)) {
@@ -146,18 +146,18 @@ static void pyramid_panel_power(int on)
 			init = 2;
 			return;
 		} else {
-			hr_msleep(10);
+			msleep(10);
 			gpio_set_value(GPIO_LCM_RST_N, 1);
-			hr_msleep(1);
+			msleep(1);
 			gpio_set_value(GPIO_LCM_RST_N, 0);
-			hr_msleep(1);
+			msleep(1);
 			gpio_set_value(GPIO_LCM_RST_N, 1);
-			hr_msleep(20);
+			msleep(20);
 		}
 	} else {
-		hr_msleep(110);
+		msleep(110);
 		gpio_set_value(GPIO_LCM_RST_N, 0);
-		hr_msleep(5);
+		msleep(5);
 		if (system_rev >= 1) {
 			if (regulator_disable(l4_1v8)) {
 				pr_err("%s: Unable to enable the regulator:"
@@ -171,7 +171,7 @@ static void pyramid_panel_power(int on)
 				return;
 			}
 		}
-		hr_msleep(5);
+		msleep(5);
 		if (regulator_disable(l1_3v)) {
 			pr_err("%s: Unable to enable the regulator:"
 					" l1_3v\n", __func__);
@@ -473,7 +473,7 @@ int pyd_esd_fixup(uint32_t mfd_data)
 {
 	/* do two read_scan_line consecutively to avoid flicking */
 	if (mipi_novatek_read_scan_line() == 0xf7ff) {
-		hr_msleep(1);
+		msleep(1);
 		if (mipi_novatek_read_scan_line() == 0xf7ff) {
 			pr_info("%s\n", __func__);
 			mipi_novatek_restart_vcounter();
