@@ -30,6 +30,7 @@
 #include <mach/rpm-regulator.h>
 
 #include "clock-local.h"
+#include "clock-8x60.h"
 #include "clock-rpm.h"
 #include "clock-voter.h"
 

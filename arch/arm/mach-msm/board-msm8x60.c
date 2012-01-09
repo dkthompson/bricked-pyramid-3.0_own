@@ -106,6 +106,7 @@
 #include "timer.h"
 #include "gpiomux-8x60.h"
 #include "sysinfo-8x60.h"
+#include "clock-8x60.h"
 #include "rpm_stats.h"
 #include "peripheral-loader.h"
 #include <linux/platform_data/qcom_crypto_device.h>
@@ -10576,6 +10577,18 @@ static struct attribute *pyramid_properties_attrs[] = {
 static struct attribute_group pyramid_properties_attr_group = {
 	.attrs = pyramid_properties_attrs,
 };
+
+int __initdata irq_ignore_tbl[] =
+{
+};
+unsigned __initdata irq_num_ignore_tbl = ARRAY_SIZE(irq_ignore_tbl);
+
+int __initdata clk_ignore_tbl[] =
+{
+	L_GSBI12_UART_CLK,
+};
+
+unsigned __initdata clk_num_ignore_tbl = ARRAY_SIZE(clk_ignore_tbl);
 
 #define PM8058_LPM_SET(id)	(1 << RPM_VREG_ID_##id)
 #define PM8901_LPM_SET(id)	(1 << (RPM_VREG_ID_##id - RPM_VREG_ID_PM8901_L0))
