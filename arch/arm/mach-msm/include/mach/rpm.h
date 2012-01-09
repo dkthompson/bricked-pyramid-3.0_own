@@ -32,6 +32,7 @@ enum {
 	MSM_RPM_PAGE_CTRL,
 	MSM_RPM_PAGE_REQ,
 	MSM_RPM_PAGE_ACK,
+	MSM_RPM_PAGE_STAT,
 	MSM_RPM_PAGE_COUNT
 };
 
@@ -134,5 +135,16 @@ int msm_rpm_register_notification(struct msm_rpm_notification *n,
 	struct msm_rpm_iv_pair *req, int count);
 int msm_rpm_unregister_notification(struct msm_rpm_notification *n);
 int msm_rpm_init(struct msm_rpm_platform_data *data);
+
+typedef enum {
+  RPM_STAT_XO_SHUTDOWN_COUNT = 0,
+  RPM_STAT_XO_SHUTDOWN_TIME  = 1,
+  RPM_STAT_VDD_MIN_COUNT = 2,
+  RPM_STAT_VDD_MIN_TIME = 3,
+  RPM_MAX_STATS,
+  RPM_HTC_REGION = 63,
+  RPM_LPM_PM8058 = 125,
+  RPM_LPM_PM8901 = 126,
+} stat_assignments;
 
 #endif /* __ARCH_ARM_MACH_MSM_RPM_H */
