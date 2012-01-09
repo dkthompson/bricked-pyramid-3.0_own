@@ -78,7 +78,9 @@ static DEFINE_SPINLOCK(msm_mpm_lock);
  */
 static DECLARE_BITMAP(msm_mpm_enabled_apps_irqs, MSM_MPM_NR_APPS_IRQS);
 static DECLARE_BITMAP(msm_mpm_wake_apps_irqs, MSM_MPM_NR_APPS_IRQS);
+static DECLARE_BITMAP(msm_mpm_idle_apps_irqs, MSM_MPM_NR_APPS_IRQS);
 
+static DECLARE_BITMAP(msm_mpm_gic_irqs_mask, MSM_MPM_NR_APPS_IRQS);
 static DECLARE_BITMAP(msm_mpm_gpio_irqs_mask, MSM_MPM_NR_APPS_IRQS);
 
 static uint32_t msm_mpm_enabled_irq[MSM_MPM_REG_WIDTH];
