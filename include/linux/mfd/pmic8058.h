@@ -108,6 +108,8 @@ struct pmic8058_charger_data {
 	bool charger_data_valid;
 };
 
+struct pm8058_chip;
+
 struct pm8058_platform_data {
 	struct pm8xxx_mpp_platform_data		*mpp_pdata;
 	struct pm8xxx_keypad_platform_data      *keypad_pdata;
@@ -130,8 +132,14 @@ struct pm8058_platform_data {
 	struct pmic8058_charger_data		*charger_pdata;
 };
 
-int pmic8058_dump_gpios(struct seq_file *m, int curr_len, char *gpio_buffer);
+int pm8058_read(struct pm8058_chip *pm_chip, u16 addr, u8 *values,
+		unsigned int len);
+int pm8058_write(struct pm8058_chip *pm_chip, u16 addr, u8 *values,
+		 unsigned int len);
 
 int pm8058_gpio_config(int gpio, struct pm_gpio *param);
 
+int pm8058_irq_get_rt_status(struct pm8058_chip *pm_chip, int irq);
+
+int pmic8058_dump_gpios(struct seq_file *m, int curr_len, char *gpio_buffer);
 #endif  /* __MFD_PMIC8058_H__ */

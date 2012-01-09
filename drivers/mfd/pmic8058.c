@@ -73,7 +73,165 @@ struct pm8058_chip {
 	struct mfd_cell         *mfd_regulators, *mfd_xo_buffers;
 
 	u8		revision;
+#ifdef CONFIG_MSM8X60_SSBI
+	spinlock_t  pm_lock;
+#else
+	struct mutex	pm_lock;
+#endif
 };
+
+#ifdef CONFIG_MSM8X60_SSBI
+#define ssbi_write(client, addr, buf, len) \
+	msm_ssbi_write(pmic_chip->id, addr, buf, len)
+#define ssbi_read(client, addr, buf, len) \
+	msm_ssbi_read(pmic_chip->id, addr, buf, len)
+#else /*CONFIG_MSM8X60_SSBI*/
+static inline int
+ssbi_write(struct i2c_client *client, u16 addr, const u8 *buf, size_t len)
+{
+	int	rc;
+	struct	i2c_msg msg = {
+		.addr           = addr,
+		.flags          = 0x0,
+		.buf            = (u8 *)buf,
+		.len            = len,
+	};
+
+	rc = i2c_transfer(client->adapter, &msg, 1);
+
+	return (rc == 1) ? 0 : rc;
+}
+
+static inline int
+ssbi_read(struct i2c_client *client, u16 addr, u8 *buf, size_t len)
+{
+	int	rc;
+	struct	i2c_msg msg = {
+		.addr           = addr,
+		.flags          = I2C_M_RD,
+		.buf            = buf,
+		.len            = len,
+	};
+
+	rc = i2c_transfer(client->adapter, &msg, 1);
+	return (rc == 1) ? 0 : rc;
+}
+#endif/*CONFIG_MSM8X60_SSBI*/
+/* External APIs */
+int pm8058_rev(struct pm8058_chip *chip)
+{
+	if (chip == NULL)
+		return -EINVAL;
+
+	return chip->revision;
+}
+EXPORT_SYMBOL(pm8058_rev);
+
+int pm8058_irq_get_rt_status(struct pm8058_chip *chip, int irq)
+{
+	int     rc;
+	u8      block, bits, bit;
+#ifdef CONFIG_MSM8X60_SSBI
+	unsigned long irqsave;
+#endif
+
+	if (chip == NULL || irq < chip->pdata.irq_base ||
+			irq >= chip->pdata.irq_base + MAX_PM_IRQ)
+		return -EINVAL;
+
+	irq -= chip->pdata.irq_base;
+
+	block = irq / 8;
+	bit = irq % 8;
+
+#ifdef CONFIG_MSM8X60_SSBI
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+#else
+	mutex_lock(&chip->pm_lock);
+#endif
+
+	rc = ssbi_write(chip->dev, SSBI_REG_ADDR_IRQ_BLK_SEL, &block, 1);
+	if (rc) {
+		pr_err("%s: FAIL ssbi_write(): rc=%d (Select Block)\n",
+				__func__, rc);
+		goto bail_out;
+	}
+
+	rc = ssbi_read(chip->dev, SSBI_REG_ADDR_IRQ_RT_STATUS, &bits, 1);
+	if (rc) {
+		pr_err("%s: FAIL ssbi_read(): rc=%d (Read RT Status)\n",
+				__func__, rc);
+		goto bail_out;
+	}
+
+	rc = (bits & (1 << bit)) ? 1 : 0;
+
+bail_out:
+#ifdef CONFIG_MSM8X60_SSBI
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+#else
+	mutex_unlock(&chip->pm_lock);
+#endif
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8058_irq_get_rt_status);
+
+#ifdef CONFIG_MSM8X60_SSBI
+int pm8058_read(struct pm8058_chip *chip, u16 addr, u8 *values,
+		unsigned int len)
+{
+	int rc;
+	unsigned long irqsave;
+	if (chip == NULL)
+		return -EINVAL;
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+
+	rc = ssbi_read(chip->dev, addr, values, len);
+
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8058_read);
+
+int pm8058_write(struct pm8058_chip *chip, u16 addr, u8 *values,
+		 unsigned int len)
+{
+	int rc;
+	unsigned long irqsave;
+	if (chip == NULL)
+		return -EINVAL;
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+
+	rc = ssbi_write(chip->dev, addr, values, len);
+
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8058_write);
+#else
+int pm8058_read(struct pm8058_chip *chip, u16 addr, u8 *values,
+		unsigned int len)
+{
+	if (chip == NULL)
+		return -EINVAL;
+
+	return ssbi_read(chip->dev, addr, values, len);
+}
+EXPORT_SYMBOL(pm8058_read);
+
+int pm8058_write(struct pm8058_chip *chip, u16 addr, u8 *values,
+		 unsigned int len)
+{
+	if (chip == NULL)
+		return -EINVAL;
+
+	return ssbi_write(chip->dev, addr, values, len);
+}
+EXPORT_SYMBOL(pm8058_write);
+#endif /*CONFIG_MSM8X60_SSBI */
 
 static int pm8058_readb(const struct device *dev, u16 addr, u8 *val)
 {
