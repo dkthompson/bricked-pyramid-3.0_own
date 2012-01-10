@@ -24,7 +24,7 @@
 #include <linux/ratelimit.h>
 #include <linux/delay.h>
 #include <linux/wakelock.h>
-
+#include <linux/kernel_stat.h>
 #include <mach/mpp.h>
 #include <mach/msm_xo.h>
 
