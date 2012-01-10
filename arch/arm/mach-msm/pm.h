@@ -67,4 +67,8 @@ int msm_platform_secondary_init(unsigned int cpu);
 #else
 static inline int msm_platform_secondary_init(unsigned int cpu) { return 0; }
 #endif
+
+int print_gpio_buffer(struct seq_file *m);
+int free_gpio_buffer(void);
+
 #endif  /* __ARCH_ARM_MACH_MSM_PM_H */

@@ -29,6 +29,7 @@
 #include <linux/mfd/pmic8058.h>
 #include <mach/mpp.h>
 #include "mpm.h"
+#include "pm.h"
 
 /* Bits of interest in the GPIO_IN_OUT register.
  */

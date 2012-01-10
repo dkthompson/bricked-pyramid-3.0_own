@@ -953,6 +953,29 @@ cpuidle_enter_bail:
 	return 0;
 }
 
+static char *gpio_sleep_status_info;
+
+int print_gpio_buffer(struct seq_file *m)
+{
+	if (gpio_sleep_status_info)
+		seq_printf(m, gpio_sleep_status_info);
+	else
+		seq_printf(m, "Device haven't suspended yet!\n");
+
+	return 0;
+}
+EXPORT_SYMBOL(print_gpio_buffer);
+
+int free_gpio_buffer()
+{
+	kfree(gpio_sleep_status_info);
+	gpio_sleep_status_info = NULL;
+
+	return 0;
+}
+EXPORT_SYMBOL(free_gpio_buffer);
+
+
 void msm_pm_cpu_enter_lowpower(unsigned int cpu)
 {
 	int i;
