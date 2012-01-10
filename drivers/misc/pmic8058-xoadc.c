@@ -785,7 +785,7 @@ static int32_t pm8058_htc_read_adc(uint32_t adc_instance, int32_t *result,
 	struct pmic8058_adc *adc_pmic = pmic_adc[adc_instance];
 	bool negative_rawfromoffset = 0;
 	int32_t rawfromoffset = 0;
-	int32_t i, adc_code, ret = 0;
+	int32_t i, adc_code = 0, ret = 0;
 	int64_t measurement;
 
 	for (i = 0; i < size; i++) {
