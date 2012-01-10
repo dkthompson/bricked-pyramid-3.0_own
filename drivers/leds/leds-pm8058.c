@@ -17,7 +17,6 @@
 #include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/leds-pm8058.h>
-#include <mach/pmic.h>
 #include <linux/pmic8058-pwm.h>
 #include <linux/delay.h>
 #include <linux/rtc.h>

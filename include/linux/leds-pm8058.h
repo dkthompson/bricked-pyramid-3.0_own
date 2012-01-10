@@ -21,10 +21,6 @@
 #include <linux/workqueue.h>
 #include <linux/android_alarm.h>
 
-#define	PM_PWM_CLK_1KHZ		0
-#define	PM_PWM_CLK_32KHZ	1
-#define	PM_PWM_CLK_19P2MHZ	2
-
 #define	PM_PWM_PREDIVIDE_2	0
 #define	PM_PWM_PREDIVIDE_3	1
 #define	PM_PWM_PREDIVIDE_5	2
