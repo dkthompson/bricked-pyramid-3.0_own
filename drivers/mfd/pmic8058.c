@@ -42,6 +42,59 @@
 #define REG_TEMP_ALRM_CTRL		0x1B
 #define REG_TEMP_ALRM_PWM		0x9B
 
+/* PMIC8058 IRQ */
+#define	SSBI_REG_ADDR_IRQ_BASE		0x1BB
+
+#define	SSBI_REG_ADDR_IRQ_ROOT		(SSBI_REG_ADDR_IRQ_BASE + 0)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS1	(SSBI_REG_ADDR_IRQ_BASE + 1)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS2	(SSBI_REG_ADDR_IRQ_BASE + 2)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS3	(SSBI_REG_ADDR_IRQ_BASE + 3)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS4	(SSBI_REG_ADDR_IRQ_BASE + 4)
+#define	SSBI_REG_ADDR_IRQ_BLK_SEL	(SSBI_REG_ADDR_IRQ_BASE + 5)
+#define	SSBI_REG_ADDR_IRQ_IT_STATUS	(SSBI_REG_ADDR_IRQ_BASE + 6)
+#define	SSBI_REG_ADDR_IRQ_CONFIG	(SSBI_REG_ADDR_IRQ_BASE + 7)
+#define	SSBI_REG_ADDR_IRQ_RT_STATUS	(SSBI_REG_ADDR_IRQ_BASE + 8)
+
+#define	PM8058_IRQF_LVL_SEL		0x01	/* level select */
+#define	PM8058_IRQF_MASK_FE		0x02	/* mask falling edge */
+#define	PM8058_IRQF_MASK_RE		0x04	/* mask rising edge */
+#define	PM8058_IRQF_CLR			0x08	/* clear interrupt */
+#define	PM8058_IRQF_BITS_MASK		0x70
+#define	PM8058_IRQF_BITS_SHIFT		4
+#define	PM8058_IRQF_WRITE		0x80
+
+#define	PM8058_IRQF_MASK_ALL		(PM8058_IRQF_MASK_FE | \
+					PM8058_IRQF_MASK_RE)
+#define PM8058_IRQF_W_C_M		(PM8058_IRQF_WRITE |	\
+					PM8058_IRQF_CLR |	\
+					PM8058_IRQF_MASK_ALL)
+
+/* MISC register */
+#define	SSBI_REG_ADDR_MISC		0x1CC
+
+/* Regulator L22 control register */
+#define SSBI_REG_ADDR_L22_CTRL		0x121
+
+/* SLEEP CNTL register */
+#define SSBI_REG_ADDR_SLEEP_CNTL	0x02B
+
+#define PM8058_SLEEP_SMPL_EN_MASK	0x04
+#define PM8058_SLEEP_SMPL_EN_RESET	0x04
+#define PM8058_SLEEP_SMPL_EN_PWR_OFF	0x00
+
+#define	MAX_PM_IRQ		256
+#define	MAX_PM_BLOCKS		(MAX_PM_IRQ / 8 + 1)
+#define	MAX_PM_MASTERS		(MAX_PM_BLOCKS / 8 + 1
+
+/* PON CNTL 1 register */
+#define SSBI_REG_ADDR_PON_CNTL_1	0x01C
+
+#define PM8058_PON_PUP_MASK		0xF0
+
+#define PM8058_PON_WD_EN_MASK		0x08
+#define PM8058_PON_WD_EN_RESET		0x08
+#define PM8058_PON_WD_EN_PWR_OFF	0x00
+
 /* PON CNTL 4 register */
 #define SSBI_REG_ADDR_PON_CNTL_4 0x98
 #define PM8058_PON_RESET_EN_MASK 0x01
@@ -68,7 +121,8 @@
 
 struct pm8058_chip {
 	struct pm8058_platform_data	pdata;
-	struct device		*dev;
+	struct device *dev;
+	int id;
 	struct pm_irq_chip	*irq_chip;
 	struct mfd_cell         *mfd_regulators, *mfd_xo_buffers;
 
@@ -82,9 +136,9 @@ struct pm8058_chip {
 
 #ifdef CONFIG_MSM_SSBI
 #define ssbi_write(client, addr, buf, len) \
-	msm_ssbi_write(pmic_chip->id, addr, buf, len)
+	msm_ssbi_write(client, addr, buf, len)
 #define ssbi_read(client, addr, buf, len) \
-	msm_ssbi_read(pmic_chip->id, addr, buf, len)
+	msm_ssbi_read(client, addr, buf, len)
 #else /*CONFIG_MSM_SSBI*/
 static inline int
 ssbi_write(struct i2c_client *client, u16 addr, const u8 *buf, size_t len)
