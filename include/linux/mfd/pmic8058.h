@@ -130,6 +130,10 @@ struct pm8058_platform_data {
 	struct pm8058_xo_pdata			*xo_buffer_pdata;
 	int					num_xo_buffers;
 	struct pmic8058_charger_data		*charger_pdata;
+
+	/* This table is only needed for misc interrupts. */
+	unsigned int				irq_base;
+	unsigned int				gpio_base;
 };
 
 struct pm8058_gpio_platform_data {
