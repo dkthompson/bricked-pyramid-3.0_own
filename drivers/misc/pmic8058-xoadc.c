@@ -55,6 +55,7 @@
 
 struct pmic8058_adc {
 	struct device *dev;
+	struct pm8058_chip *pm_chip;
 	struct xoadc_platform_data *pdata;
 	struct adc_properties *adc_prop;
 	struct xoadc_conv_state	conv[2];
@@ -69,11 +70,22 @@ struct pmic8058_adc {
 	struct wake_lock adc_wakelock;
 	/* flag to warn/bug if wakelocks are taken after suspend_noirq */
 	int msm_suspend_check;
+	void *done;
 };
+
+static struct mutex mpp_mutex;
+static struct mutex adc_mutex;
+static struct mutex list_mutex;
+static struct mutex mlock;
+static int is_suspend;
+static int queue_count;
+static int gain_denominator, gain_numerator;
+static int debug_counter;
 
 static struct pmic8058_adc *pmic_adc[XOADC_PMIC_0 + 1];
 
 static bool xoadc_initialized, xoadc_calib_first_adc;
+static bool xoadc_calib_adc;
 
 DEFINE_RATELIMIT_STATE(pm8058_xoadc_msg_ratelimit,
 		DEFAULT_RATELIMIT_INTERVAL, DEFAULT_RATELIMIT_BURST);
@@ -518,6 +530,163 @@ struct adc_properties *pm8058_xoadc_get_properties(uint32_t dev_instance)
 }
 EXPORT_SYMBOL(pm8058_xoadc_get_properties);
 
+static int32_t pm8058_configure_and_read(uint32_t adc_instance, int32_t channels, int32_t *data)
+{
+	int rc = 0;
+	struct pmic8058_adc *adc_pmic = pmic_adc[adc_instance];
+	u8 data_arb_cntrl, data_amux_chan, data_arb_rsv, data_ana_param;
+	u8 data_dig_param, data_ana_param2;
+	uint8_t rslt_lsb, rslt_msb;
+	int32_t max_ideal_adc_code = 1 << adc_pmic->adc_prop->bitresolution;
+	DECLARE_COMPLETION_ONSTACK(done);
+
+	mutex_lock(&mlock);
+	if (is_suspend) {
+		mutex_unlock(&mlock);
+		pr_err("device enters suspend!\n");
+		return -EIO;
+	}
+
+	mutex_lock(&adc_mutex);
+
+	adc_pmic->done = &done;
+
+	rc = pm8058_xoadc_arb_cntrl(1, adc_instance, 0);
+	if (rc < 0) {
+		pr_err("%s: Configuring ADC Arbiter"
+				"enable failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	switch (channels) {
+	case CHANNEL_ADC_VCHG:
+		data_amux_chan = CHANNEL_125V << 4;
+		data_arb_rsv = 0x20;
+		gain_numerator = 1;
+		gain_denominator = 1;
+		break;
+	case CHANNEL_ADC_625_REF:
+		data_amux_chan = CHANNEL_INTERNAL << 4;
+		data_arb_rsv = 0x20;
+		gain_numerator = 1;
+		gain_denominator = 1;
+		break;
+	case CHANNEL_ADC_BATT_THERM:
+	case CHANNEL_ADC_HDSET:
+		data_amux_chan = CHANNEL_MPP5 << 4;
+		data_arb_rsv = 0x20;
+		gain_numerator = 1;
+		gain_denominator = 1;
+		break;
+	case CHANNEL_ADC_BATT_AMON:
+	default:
+		data_amux_chan = CHANNEL_MPP6 << 4;
+		data_arb_rsv = 0x20;
+		gain_numerator = 1;
+		gain_denominator = 1;
+		break;
+	}
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_AMUX_CNTRL, &data_amux_chan, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_RSV, &data_arb_rsv, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	data_ana_param = 0xFE;
+	data_dig_param = 0x03;
+	data_ana_param2 = 0xFF;
+	/* AMUX register data to start the ADC conversion */
+	data_arb_cntrl = 0xF1;
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_ANA_PARAM, &data_ana_param, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_DIG_PARAM, &data_dig_param, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_ANA_PARAM, &data_ana_param2, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	enable_irq(adc_pmic->adc_irq);
+
+	rc = pm8058_write(adc_pmic->pm_chip,
+			ADC_ARB_USRP_CNTRL, &data_arb_cntrl, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 write failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	rc = wait_for_completion_timeout(&done, HZ);
+
+	if (!rc) {
+		struct irqaction *act = irq_desc[adc_pmic->adc_irq].action;
+		disable_irq(adc_pmic->adc_irq);
+
+		if (debug_counter/1000) {
+			dump_stack();
+			show_state_filter(TASK_UNINTERRUPTIBLE);
+			print_workqueue();
+			debug_counter = 0;
+		}
+		debug_counter++;
+		pr_err("%s: wait_for_completion_interruptible_timeout\n",
+				__func__);
+		pr_err("%5d: %10u %8x  %s\n", adc_pmic->adc_irq,
+				kstat_irqs(adc_pmic->adc_irq),
+				irq_desc[adc_pmic->adc_irq].status,
+				(act && act->name) ? act->name : "???");
+		rc = -ETIMEDOUT;
+		goto configure_and_read_failed;
+	}
+
+	rc = pm8058_read(adc_pmic->pm_chip, ADC_ARB_USRP_DATA0, &rslt_lsb, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 read failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	rc = pm8058_read(adc_pmic->pm_chip, ADC_ARB_USRP_DATA1, &rslt_msb, 1);
+	if (rc < 0) {
+		pr_err("%s: PM8058 read failed\n", __func__);
+		goto configure_and_read_failed;
+	}
+
+	*data = (rslt_msb << 8) | rslt_lsb;
+
+	/* Use the midpoint to determine underflow or overflow */
+	if (*data > max_ideal_adc_code + (max_ideal_adc_code >> 1))
+		*data |= ((1 << (8 * sizeof(*data) -
+			adc_pmic->adc_prop->bitresolution)) - 1) <<
+			adc_pmic->adc_prop->bitresolution;
+
+configure_and_read_failed:
+	adc_pmic->done = NULL;
+	mutex_unlock(&adc_mutex);
+	mutex_unlock(&mlock);
+	return rc;
+}
+
 int32_t pm8058_xoadc_calib_device(uint32_t adc_instance)
 {
 	struct pmic8058_adc *adc_pmic = pmic_adc[adc_instance];
@@ -712,7 +881,7 @@ config_and_read_failed:
 	mutex_lock(&list_mutex);
 	queue_count--;
 	if (queue_count == 0)
-		pm8058_xoadc_arb_cntrl(0, 0);
+		pm8058_xoadc_arb_cntrl(0, 0, 0);
 	mutex_unlock(&list_mutex);
 	return ret;
 }
