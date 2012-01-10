@@ -611,7 +611,7 @@ static struct platform_device msm_fb_device = {
 	.dev.platform_data = &msm_fb_pdata,
 };
 
-int mdp_core_clk_rate_table[] = {
+int mdp_core_clk_rate_table_pyd[] = {
 	59080000,
 	128000000,
 	160000000,
@@ -1183,8 +1183,8 @@ int pyd_mdp_gamma(void)
 static struct msm_panel_common_pdata mdp_pdata = {
 	.gpio = 28,
 	.mdp_core_clk_rate = 200000000,
-	.mdp_core_clk_table = mdp_core_clk_rate_table,
-	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table),
+	.mdp_core_clk_table = mdp_core_clk_rate_table_pyd,
+	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table_pyd),
 #ifdef CONFIG_MSM_BUS_SCALING
 	.mdp_bus_scale_table = &mdp_bus_scale_pdata,
 #endif
