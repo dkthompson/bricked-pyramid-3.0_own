@@ -26,6 +26,8 @@
 #include <linux/suspend.h>
 #include <linux/tick.h>
 #include <linux/uaccess.h>
+#include <linux/mfd/pmic8058.h>
+#include <linux/seq_file.h>
 #include <linux/wakelock.h>
 #include <mach/msm_iomap.h>
 #include <mach/system.h>
