@@ -20,11 +20,14 @@
 #include <linux/module.h>
 #include <linux/spinlock.h>
 #include <linux/syscore_ops.h>
+#include <linux/debugfs.h>
 
 #include <asm/mach/irq.h>
 
 #include <mach/msm_iomap.h>
 #include <mach/gpiomux.h>
+#include <linux/mfd/pmic8058.h>
+#include <mach/mpp.h>
 #include "mpm.h"
 
 /* Bits of interest in the GPIO_IN_OUT register.
