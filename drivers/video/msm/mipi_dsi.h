@@ -121,6 +121,9 @@ enum dsi_trigger_type {
 #define DSI_CMD_TRIGGER_SW_SEOF		0x05	/* cmd dma only */
 #define DSI_CMD_TRIGGER_SW_TE		0x06
 
+#define DTYPE_VSYNC_START	0x01	/* short write, 0 parameter */
+
+
 extern struct device dsi_dev;
 extern int mipi_dsi_clk_on;
 extern u32 dsi_irq;

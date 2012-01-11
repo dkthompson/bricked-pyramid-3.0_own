@@ -14,6 +14,7 @@
 #ifdef CONFIG_SPI_QUP
 #include <linux/spi/spi.h>
 #endif
+#include <mach/panel_id.h>
 #include "msm_fb.h"
 #include "mipi_dsi.h"
 #include "mipi_novatek.h"
@@ -375,6 +376,69 @@ static void mipi_dsi_enable_3d_barrier(int mode)
 	} else
 		pr_err("%s: 3D barrier not configured correctly\n",
 					__func__);
+}
+
+static char peripheral_off[2] = {0x00, 0x00}; /* DTYPE_DCS_READ */
+static char vsync_start[2] = {0x00, 0x00}; /* DTYPE_DCS_READ */
+
+static struct dsi_cmd_desc novatek_restart_vcounter_cmd[] = {
+	{DTYPE_VSYNC_START, 1, 0, 1, 0,
+		sizeof(vsync_start), vsync_start},
+	{DTYPE_PERIPHERAL_OFF, 1, 0, 1, 0,
+		sizeof(peripheral_off), peripheral_off}
+};
+
+int mipi_novatek_restart_vcounter(struct platform_device *pdev)
+{
+	uint32 dma_ctrl;
+	struct msm_fb_data_type *mfd;
+
+	mfd = platform_get_drvdata(pdev);
+	if (!mfd)
+		return -ENODEV;
+	if (mfd->key != MFD_KEY)
+		return -EINVAL;
+
+	/* DSI_COMMAND_MODE_DMA_CTRL */
+	dma_ctrl = MIPI_INP(MIPI_DSI_BASE + 0x38);
+	/* pr_info("%s+ dma_ctrl=0x%x\n", __func__, dma_ctrl); */
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+	mipi_dsi_op_mode_config(DSI_CMD_MODE);
+	mipi_dsi_cmds_tx(mfd, &novatek_tx_buf, novatek_restart_vcounter_cmd,
+			ARRAY_SIZE(novatek_restart_vcounter_cmd));
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, dma_ctrl);
+	/* pr_info("%s-\n", __func__); */
+	return 0;
+}
+
+static char read_scan_line[2] = {0x45, 0x00}; /* DTYPE_DCS_READ */
+static struct dsi_cmd_desc read_scan_line_cmd = {
+	DTYPE_DCS_READ, 1, 0, 1, 0, sizeof(read_scan_line), read_scan_line};
+
+uint32 mipi_novatek_read_scan_line(struct platform_device *pdev)
+{
+	struct dsi_cmd_desc *cmd;
+	uint32 dma_ctrl;
+	struct msm_fb_data_type *mfd;
+
+	mfd = platform_get_drvdata(pdev);
+	if (!mfd)
+		return -ENODEV;
+	if (mfd->key != MFD_KEY)
+		return -EINVAL;
+
+	/* DSI_COMMAND_MODE_DMA_CTRL */
+	dma_ctrl = MIPI_INP(MIPI_DSI_BASE + 0x38);
+	pr_debug("%s+ dma_ctrl=0x%x\n", __func__, dma_ctrl);
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, 0x10000000);
+	mipi_dsi_buf_init(&novatek_rx_buf);
+	mipi_dsi_buf_init(&novatek_rx_buf);
+
+	cmd = &read_scan_line_cmd;
+	mipi_dsi_cmds_rx(mfd, &novatek_tx_buf, &novatek_rx_buf, cmd, 4);
+	MIPI_OUTP(MIPI_DSI_BASE + 0x38, dma_ctrl);
+
+	return *((uint32 *)novatek_rx_buf.data);
 }
 
 static int mipi_novatek_lcd_on(struct platform_device *pdev)
