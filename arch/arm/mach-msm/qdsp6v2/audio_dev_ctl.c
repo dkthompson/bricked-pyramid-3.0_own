@@ -44,6 +44,9 @@ struct audio_dev_ctrl_state {
 static struct audio_dev_ctrl_state audio_dev_ctrl;
 struct event_listner event;
 
+static int voc_rx_freq = 0;
+static int voc_tx_freq = 0;
+
 struct session_freq {
 	int freq;
 	int evt;
@@ -641,6 +644,13 @@ int msm_get_voc_freq(int *tx_freq, int *rx_freq)
 	return 0;
 }
 EXPORT_SYMBOL(msm_get_voc_freq);
+
+void msm_set_voc_freq(int tx_freq, int rx_freq)
+{
+	voc_tx_freq = tx_freq;
+	voc_rx_freq = rx_freq;
+}
+EXPORT_SYMBOL(msm_set_voc_freq);
 
 int msm_get_voc_route(u32 *rx_id, u32 *tx_id)
 {
