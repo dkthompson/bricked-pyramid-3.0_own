@@ -21,30 +21,6 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-static unsigned char fm_radio_status;
-
-int gpio_event_get_fm_radio_status(void)
-{
-	return fm_radio_status;
-}
-
-static ssize_t fm_radio_store(struct device *dev,
-					 struct device_attribute *attr,
-					 const char *buf, size_t count)
-{
-	fm_radio_status = simple_strtoull(buf, NULL, 10);
-	KEY_LOGI("GPIO_EVENT:: fm_radio_status=%d\n", fm_radio_status);
-
-	return count;
-}
-static ssize_t fm_radio_show(struct device *dev,
-					struct device_attribute *attr, char *buf)
-{
-	return sprintf(buf, "fm_radio_status:%d\n", fm_radio_status);
-}
-
-static DEVICE_ATTR(fm_radio, 0664, fm_radio_show, fm_radio_store);
-
 struct gpio_event {
 	struct gpio_event_input_devs *input_devs;
 	const struct gpio_event_platform_data *info;
