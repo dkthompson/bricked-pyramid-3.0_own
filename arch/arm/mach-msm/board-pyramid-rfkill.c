@@ -23,7 +23,7 @@
 
 #include <mach/htc_sleep_clk.h>
 
-#include "board-pyramid.h"
+#include <mach/board-msm8660.h>
 
 static struct rfkill *bt_rfk;
 static const char bt_name[] = "bcm4329";
@@ -282,7 +282,7 @@ static struct platform_driver pyramid_rfkill_driver = {
 
 static int __init pyramid_rfkill_init(void)
 {
-	if (!machine_is_pyramid())
+	if (!machine_is_msm8x60_pyramid())
 		return 0;
 
 	return platform_driver_register(&pyramid_rfkill_driver);

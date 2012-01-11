@@ -11,7 +11,7 @@
 #include <linux/skbuff.h>
 #include <linux/wifi_tiwlan.h>
 
-#include "board-pyramid.h"
+#include <mach/board-msm8660.h>
 
 int pyramid_wifi_power(int on);
 int pyramid_wifi_reset(int on);

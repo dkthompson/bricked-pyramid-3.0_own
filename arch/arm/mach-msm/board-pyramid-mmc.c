@@ -30,14 +30,14 @@
 #include <asm/mach/mmc.h>
 
 #include "devices.h"
-#include "board-pyramid.h"
+#include <mach/board-msm8660.h>
 #include "proc_comm.h"
 #include <mach/msm_iomap.h>
 #include <linux/mfd/pmic8058.h>
 #include <mach/htc_sleep_clk.h>
 #include "mpm.h"
 #include <linux/irq.h>
-static int msm_sdcc_cfg_mpm_sdiowakeup(struct device *dev, bool is_wake_up)
+static int msm_sdcc_cfg_mpm_sdiowakeup(struct device *dev, unsigned is_wake_up)
 {
 	struct platform_device *pdev;
 	enum msm_mpm_pin pin;
