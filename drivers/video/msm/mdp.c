@@ -1025,6 +1025,40 @@ static void mdp_drv_init(void)
 #endif
 }
 
+static int
+mdp_write_reg_mask(uint32_t reg, uint32_t val, uint32_t mask)
+{
+	uint32_t oldval, newval;
+
+	oldval = inpdw(MDP_BASE + reg);
+
+	oldval &= (~mask);
+	val &= mask;
+	newval = oldval | val;
+
+	outpdw(MDP_BASE + reg, newval);
+
+	return 0;
+
+}
+
+void mdp_color_enhancement(const struct mdp_reg *reg_seq, int size)
+{
+	int i;
+
+	printk(KERN_INFO "%s\n", __func__);
+	for (i = 0; i < size; i++) {
+		if (reg_seq[i].mask == 0x0)
+			outpdw(MDP_BASE + reg_seq[i].reg, reg_seq[i].val);
+		else
+			outpdw(MDP_BASE + reg_seq[i].reg, reg_seq[i].val);
+			mdp_write_reg_mask(reg_seq[i].reg, reg_seq[i].val, reg_seq[i].mask);
+	}
+
+	return ;
+}
+
+
 static int mdp_probe(struct platform_device *pdev);
 static int mdp_remove(struct platform_device *pdev);
 
