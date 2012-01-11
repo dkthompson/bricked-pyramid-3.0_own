@@ -18,6 +18,23 @@
 #include <linux/mfd/pmic8901.h>
 #include <linux/mfd/pm8xxx/core.h>
 
+/* PMIC8901 IRQ */
+#define	SSBI_REG_ADDR_IRQ_BASE		0xD5
+
+#define	SSBI_REG_ADDR_IRQ_ROOT		(SSBI_REG_ADDR_IRQ_BASE + 0)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS1	(SSBI_REG_ADDR_IRQ_BASE + 1)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS2	(SSBI_REG_ADDR_IRQ_BASE + 2)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS3	(SSBI_REG_ADDR_IRQ_BASE + 3)
+#define	SSBI_REG_ADDR_IRQ_M_STATUS4	(SSBI_REG_ADDR_IRQ_BASE + 4)
+#define	SSBI_REG_ADDR_IRQ_BLK_SEL	(SSBI_REG_ADDR_IRQ_BASE + 5)
+#define	SSBI_REG_ADDR_IRQ_IT_STATUS	(SSBI_REG_ADDR_IRQ_BASE + 6)
+#define	SSBI_REG_ADDR_IRQ_CONFIG	(SSBI_REG_ADDR_IRQ_BASE + 7)
+#define	SSBI_REG_ADDR_IRQ_RT_STATUS	(SSBI_REG_ADDR_IRQ_BASE + 8)
+
+#define	MAX_PM_IRQ			72
+#define	MAX_PM_BLOCKS			(MAX_PM_IRQ / 8 + 1)
+#define	MAX_PM_MASTERS			(MAX_PM_BLOCKS / 8 + 1)
+
 /* PMIC8901 Revision */
 #define PM8901_REG_REV			0x002
 #define PM8901_VERSION_MASK		0xF0
@@ -44,7 +61,45 @@ struct pm8901_chip {
 	struct pm_irq_chip		*irq_chip;
 	struct mfd_cell			*mfd_regulators;
 	u8				revision;
+	spinlock_t			pm_lock;
 };
+
+#ifdef CONFIG_MSM_SSBI
+#define ssbi_write(client, addr, buf, len) \
+	msm_ssbi_write(client, addr, buf, len)
+#define ssbi_read(client, addr, buf, len) \
+	msm_ssbi_read(client, addr, buf, len)
+#else
+static inline int
+ssbi_write(struct i2c_client *client, u16 addr, const u8 *buf, size_t len)
+{
+	int	rc;
+	struct	i2c_msg msg = {
+		.addr           = addr,
+		.flags          = 0x0,
+		.buf            = (u8 *)buf,
+		.len            = len,
+	};
+
+	rc = i2c_transfer(client->adapter, &msg, 1);
+	return (rc == 1) ? 0 : rc;
+}
+
+static inline int
+ssbi_read(struct i2c_client *client, u16 addr, u8 *buf, size_t len)
+{
+	int	rc;
+	struct	i2c_msg msg = {
+		.addr           = addr,
+		.flags          = I2C_M_RD,
+		.buf            = buf,
+		.len            = len,
+	};
+
+	rc = i2c_transfer(client->adapter, &msg, 1);
+	return (rc == 1) ? 0 : rc;
+}
+#endif
 
 static int pm8901_readb(const struct device *dev, u16 addr, u8 *val)
 {
@@ -170,6 +225,102 @@ static struct mfd_cell mpp_cell = {
 	.resources	= mpp_cell_resources,
 	.num_resources	= ARRAY_SIZE(mpp_cell_resources),
 };
+
+#ifdef CONFIG_MSM_SSBI
+int pm8901_read(struct pm8901_chip *chip, u16 addr, u8 *values,
+		unsigned int len)
+{
+	unsigned long   irqsave;
+	int rc;
+
+	if (chip == NULL)
+		return -EINVAL;
+
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+	rc = ssbi_read(chip->dev, addr, values, len);
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8901_read);
+
+int pm8901_write(struct pm8901_chip *chip, u16 addr, u8 *values,
+		 unsigned int len)
+{
+	unsigned long   irqsave;
+	int rc;
+
+	if (chip == NULL)
+		return -EINVAL;
+
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+	rc = ssbi_write(chip->dev, addr, values, len);
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8901_write);
+
+#else /*CONFIG_MSM_SSBI*/
+int pm8901_read(struct pm8901_chip *chip, u16 addr, u8 *values,
+		unsigned int len)
+{
+	if (chip == NULL)
+		return -EINVAL;
+
+	return ssbi_read(chip->dev, addr, values, len);
+}
+EXPORT_SYMBOL(pm8901_read);
+
+int pm8901_write(struct pm8901_chip *chip, u16 addr, u8 *values,
+		 unsigned int len)
+{
+	if (chip == NULL)
+		return -EINVAL;
+
+	return ssbi_write(chip->dev, addr, values, len);
+}
+EXPORT_SYMBOL(pm8901_write);
+#endif /*CONFIG_MSM_SSBI*/
+int pm8901_irq_get_rt_status(struct pm8901_chip *chip, int irq)
+{
+	int     rc;
+	u8      block, bits, bit;
+	unsigned long   irqsave;
+
+	if (chip == NULL || irq < chip->pdata.irq_base ||
+			irq >= chip->pdata.irq_base + MAX_PM_IRQ)
+		return -EINVAL;
+
+	irq -= chip->pdata.irq_base;
+
+	block = irq / 8;
+	bit = irq % 8;
+
+	spin_lock_irqsave(&chip->pm_lock, irqsave);
+
+	rc = ssbi_write(chip->dev, SSBI_REG_ADDR_IRQ_BLK_SEL, &block, 1);
+	if (rc) {
+		pr_err("%s: FAIL ssbi_write(): rc=%d (Select Block)\n",
+				__func__, rc);
+		goto bail_out;
+	}
+
+	rc = ssbi_read(chip->dev, SSBI_REG_ADDR_IRQ_RT_STATUS, &bits, 1);
+	if (rc) {
+		pr_err("%s: FAIL ssbi_read(): rc=%d (Read RT Status)\n",
+				__func__, rc);
+		goto bail_out;
+	}
+
+	rc = (bits & (1 << bit)) ? 1 : 0;
+
+bail_out:
+	spin_unlock_irqrestore(&chip->pm_lock, irqsave);
+
+	return rc;
+}
+EXPORT_SYMBOL(pm8901_irq_get_rt_status);
 
 static int __devinit
 pm8901_add_subdevices(const struct pm8901_platform_data *pdata,
