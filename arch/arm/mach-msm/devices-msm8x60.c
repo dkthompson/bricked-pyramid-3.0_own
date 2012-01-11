@@ -38,6 +38,7 @@
 #include <mach/msm_serial_hs_lite.h>
 #include <mach/msm_bus.h>
 #include <mach/msm_bus_board.h>
+#include <asm/mach/flash.h>
 #include <mach/socinfo.h>
 #include <mach/msm_memtypes.h>
 #include <mach/msm_tsif.h>
@@ -917,6 +918,30 @@ struct platform_device msm_device_ssbi_pmic2 = {
 	.resource	= resources_ssbi_pmic2_resource,
 	.num_resources	= ARRAY_SIZE(resources_ssbi_pmic2_resource),
 };
+
+struct flash_platform_data msm_nand_data = {
+	.parts		= NULL,
+	.nr_parts	= 0,
+};
+
+static struct resource resources_nand[] = {
+	[0] = {
+		.start	= 7,
+		.end	= 7,
+		.flags	= IORESOURCE_DMA,
+	},
+};
+
+struct platform_device msm_device_nand = {
+	.name		= "msm_nand",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(resources_nand),
+	.resource	= resources_nand,
+	.dev		= {
+		.platform_data	= &msm_nand_data,
+	},
+};
+
 #endif
 
 #ifdef CONFIG_I2C_SSBI
@@ -937,6 +962,7 @@ struct platform_device msm_device_ssbi3 = {
 	.num_resources	= ARRAY_SIZE(msm_ssbi3_resources),
 	.resource	= msm_ssbi3_resources,
 };
+
 #endif /* CONFIG_I2C_SSBI */
 
 static struct resource gsbi1_qup_spi_resources[] = {
