@@ -25,6 +25,7 @@
 #include <linux/regulator/pmic8901-regulator.h>
 #include <linux/mfd/pm8xxx/misc.h>
 
+/* PM8901 interrupt numbers */
 #define PM8901_IRQ_BLOCK_BIT(block, bit) ((block) * 8 + (bit))
 
 #define PM8901_NR_IRQS			72
@@ -38,6 +39,8 @@
 #define PM8901_TEMPSTAT_IRQ		PM8901_IRQ_BLOCK_BIT(6, 4)
 #define PM8901_OVERTEMP_IRQ		PM8901_IRQ_BLOCK_BIT(6, 5)
 
+struct pm8901_chip;
+
 struct pm8901_platform_data {
 	struct pm8xxx_irq_platform_data		*irq_pdata;
 	struct pm8xxx_mpp_platform_data		*mpp_pdata;
@@ -46,4 +49,24 @@ struct pm8901_platform_data {
 	int					num_regulators;
 };
 
+struct pm8901_gpio_platform_data {
+	int	gpio_base;
+	int	irq_base;
+};
+
+/* chip revision */
+#define PM_8901_REV_1p0			0xF1
+#define PM_8901_REV_1p1			0xF2
+#define PM_8901_REV_2p0			0xF3
+
+int pm8901_read(struct pm8901_chip *pm_chip, u16 addr, u8 *values,
+		unsigned int len);
+int pm8901_write(struct pm8901_chip *pm_chip, u16 addr, u8 *values,
+		 unsigned int len);
+
+int pm8901_rev(struct pm8901_chip *pm_chip);
+
+int pm8901_irq_get_rt_status(struct pm8901_chip *pm_chip, int irq);
+
+int pm8901_reset_pwr_off(int reset);
 #endif /* __PMIC8901_H__ */
