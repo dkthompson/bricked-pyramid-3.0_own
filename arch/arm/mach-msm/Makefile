@@ -99,15 +99,9 @@ endif
 endif
 endif
 endif
-ifndef CONFIG_ARCH_MSM8960
-ifndef CONFIG_ARCH_MSM8X60
-ifndef CONFIG_ARCH_APQ8064
-ifndef CONFIG_ARCH_MSMCOPPER
-	obj-y += nand_partitions.o
-endif
-endif
-endif
-endif
+
+obj-y += nand_partitions.o
+
 obj-$(CONFIG_MSM_SDIO_TTY) += sdio_tty.o
 obj-$(CONFIG_MSM_SMD_TTY) += smd_tty.o
 obj-$(CONFIG_MSM_SMD_QMI) += smd_qmi.o
