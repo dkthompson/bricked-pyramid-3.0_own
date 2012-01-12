@@ -26,6 +26,8 @@
 #include <mach/vreg.h>
 #include <mach/pmic.h>
 #include <mach/debug_mm.h>
+#include <mach/qdsp6v2/snddev_icodec.h>
+#include <linux/spi/spi_aic3254.h>
 #include <sound/q6afe.h>
 #include <sound/apr_audio.h>
 #include "snddev_icodec.h"
@@ -45,13 +47,8 @@
 
 int msm_codec_i2s_slave_mode;
 
-/* Context for each internal codec sound device */
-struct snddev_icodec_state {
-	struct snddev_icodec_data *data;
-	struct adie_codec_path *adie_path;
-	u32 sample_rate;
-	u32 enabled;
-};
+static struct q6v2audio_icodec_ops default_audio_ops;
+static struct q6v2audio_icodec_ops *audio_ops = &default_audio_ops;
 
 /* Global state for the driver */
 struct snddev_icodec_drv_state {
@@ -963,6 +960,11 @@ int snddev_icodec_set_device_volume(struct msm_snddev_info *dev_info,
 			dev_info->dev_volume);
 	mutex_unlock(lock);
 	return rc;
+}
+
+void htc_8x60_register_icodec_ops(struct q6v2audio_icodec_ops *ops)
+{
+	audio_ops = ops;
 }
 
 static int snddev_icodec_probe(struct platform_device *pdev)
