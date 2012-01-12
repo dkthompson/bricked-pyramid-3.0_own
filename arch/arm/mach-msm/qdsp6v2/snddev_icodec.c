@@ -49,6 +49,8 @@ int msm_codec_i2s_slave_mode;
 
 static struct q6v2audio_icodec_ops default_audio_ops;
 static struct q6v2audio_icodec_ops *audio_ops = &default_audio_ops;
+static struct q6v2audio_aic3254_ops default_aic3254_ops;
+static struct q6v2audio_aic3254_ops *aic3254_ops = &default_aic3254_ops;
 
 /* Global state for the driver */
 struct snddev_icodec_drv_state {
@@ -1040,6 +1042,11 @@ static struct platform_driver snddev_icodec_driver = {
 
 module_param(msm_codec_i2s_slave_mode, bool, 0);
 MODULE_PARM_DESC(msm_codec_i2s_slave_mode, "Set MSM to I2S slave clock mode");
+
+void htc_8x60_register_aic3254_ops(struct q6v2audio_aic3254_ops *ops)
+{
+	aic3254_ops = ops;
+}
 
 static int __init snddev_icodec_init(void)
 {
