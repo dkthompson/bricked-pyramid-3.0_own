@@ -403,6 +403,12 @@ config SENSORS_AK8975
 	  If you say yes here you get support for Asahi Kasei's
 	  orientation sensor AK8975.
 
+config AMP_TPA2051D3
+        tristate "TI TPA2051D3 Speaker AMP Driver"
+        depends on I2C
+        help
+         TI TPA2051D3 Speaker AMP Driver implemented by HTC.
+
 config EP93XX_PWM
 	tristate "EP93xx PWM support"
 	depends on ARCH_EP93XX
