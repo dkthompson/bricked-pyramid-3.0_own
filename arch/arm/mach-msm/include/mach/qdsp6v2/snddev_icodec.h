@@ -42,8 +42,10 @@ struct snddev_icodec_data {
 	/* Afe setting */
 	u8 channel_mode;
 	u32 default_sample_rate;
-	void (*pamp_on) (int on);
-	void (*voltage_on) (int on);
+	int (*pamp_on) (void);
+	void (*pamp_off) (void);
+	int (*voltage_on) (void);
+	void (*voltage_off) (void);
 	u32 dev_vol_type;
 	u32 aic3254_id;
 	u32 aic3254_voc_id;

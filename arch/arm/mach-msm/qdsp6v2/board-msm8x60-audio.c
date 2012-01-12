@@ -26,6 +26,8 @@
 #include <sound/apr_audio.h>
 #include <asm/mach-types.h>
 #include <asm/uaccess.h>
+#include <mach/qdsp6v2/snddev_icodec.h>
+#include <mach/qdsp6v2/snddev_ecodec.h>
 #include <mach/board-msm8660.h>
 
 #include "snddev_icodec.h"
@@ -54,6 +56,9 @@ static void snddev_hsed_config_restore_setting(void);
 #define DSP_RAM_BASE_8x60 0x46700000
 #define DSP_RAM_SIZE_8x60 0x2000000
 static int dspcrashd_pdata_8x60 = 0xDEADDEAD;
+
+static struct q6v2audio_analog_ops default_audio_ops;
+static struct q6v2audio_analog_ops *audio_ops = &default_audio_ops;
 
 static struct resource resources_dspcrashd_8x60[] = {
 	{
@@ -2664,6 +2669,10 @@ static struct platform_device *snd_devices_ftm[] __initdata = {
 static struct platform_device *snd_devices_ftm[] __initdata = {};
 #endif
 
+void htc_8x60_register_analog_ops(struct q6v2audio_analog_ops *ops)
+{
+	audio_ops = ops;
+}
 
 void __init msm_snddev_init(void)
 {
