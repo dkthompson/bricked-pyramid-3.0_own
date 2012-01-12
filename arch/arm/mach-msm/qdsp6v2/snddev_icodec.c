@@ -1048,6 +1048,28 @@ void htc_8x60_register_aic3254_ops(struct q6v2audio_aic3254_ops *ops)
 	aic3254_ops = ops;
 }
 
+int update_aic3254_info(struct aic3254_info *info)
+{
+	struct msm_snddev_info *dev_info;
+	int rc = 0;
+
+	dev_info = audio_dev_ctrl_find_dev(info->dev_id);
+	if (IS_ERR(dev_info))
+		rc = -ENODEV;
+	else {
+		if ((dev_info->copp_id == PRIMARY_I2S_RX) ||
+			(dev_info->copp_id == PRIMARY_I2S_TX)) {
+			struct snddev_icodec_state *icodec;
+			icodec = dev_info->private_data;
+			icodec->data->aic3254_id = info->path_id;
+			pr_aud_info("%s: update aic3254 id of device %s as %d\n",
+				__func__, dev_info->name, icodec->data->aic3254_id);
+		}
+	}
+
+	return rc;
+}
+
 static int __init snddev_icodec_init(void)
 {
 	s32 rc;
