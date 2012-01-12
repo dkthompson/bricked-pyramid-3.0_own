@@ -23,10 +23,13 @@
 #include <mach/clk.h>
 #include <mach/qdsp6v2/audio_dev_ctl.h>
 #include <sound/apr_audio.h>
+#include <mach/qdsp6v2/snddev_ecodec.h>
 #include <sound/q6afe.h>
 #include "snddev_ecodec.h"
 
 #define ECODEC_SAMPLE_RATE 8000
+static struct q6v2audio_ecodec_ops default_audio_ops;
+static struct q6v2audio_ecodec_ops *audio_ops = &default_audio_ops;
 
 /* Context for each external codec device */
 struct snddev_ecodec_state {
@@ -284,6 +287,11 @@ int snddev_ecodec_set_freq(struct msm_snddev_info *dev_info, u32 rate)
 
 error:
 	return rc;
+}
+
+void htc_8x60_register_ecodec_ops(struct q6v2audio_ecodec_ops *ops)
+{
+	audio_ops = ops;
 }
 
 static int snddev_ecodec_probe(struct platform_device *pdev)
